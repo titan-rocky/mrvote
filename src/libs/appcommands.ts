@@ -1,9 +1,4 @@
-import {
-  ApplicationCommandSubGroup,
-  ApplicationCommandSubGroupData,
-  REST,
-  Routes,
-} from "discord.js";
+import { REST, Routes } from "discord.js";
 
 interface ApplicationCommandDesc {
   name: string;
@@ -12,7 +7,7 @@ interface ApplicationCommandDesc {
 
 export async function setAppCommands(
   commands: Array<ApplicationCommandDesc>,
-  client_id: string
+  client_id: string,
 ) {
   const rest = new REST({ version: "10" }).setToken(process.env.DISCORDTOKEN!);
 
