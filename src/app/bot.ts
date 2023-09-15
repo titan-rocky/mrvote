@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits } from "discord.js";
 import { setAppCommands } from "../libs/appcommands";
 import { pong, sunquote, vote } from "../libs/data/commands/slashc";
+import { purge } from "../libs/data/commands/usercommands";
 
 const client = new Client({
   intents: [
@@ -38,6 +39,10 @@ export default async function activateBot() {
         },
       ],
     },
+    {
+      name: "purge",
+      description: "Thanos' snap in the channel",
+    },
   ];
 
   const CLIENT_ID = process.env.CLIENTID!;
@@ -56,6 +61,8 @@ export default async function activateBot() {
       await sunquote(interaction);
     } else if (interaction.commandName === "poll") {
       await vote(interaction);
+    } else if (interaction.commandName === "purge") {
+      await purge(interaction);
     }
   });
 

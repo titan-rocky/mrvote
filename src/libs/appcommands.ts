@@ -7,7 +7,7 @@ interface ApplicationCommandDesc {
 
 export async function setAppCommands(
   commands: Array<ApplicationCommandDesc>,
-  client_id: string,
+  client_id: string
 ) {
   const rest = new REST({ version: "10" }).setToken(process.env.DISCORDTOKEN!);
 
@@ -18,6 +18,6 @@ export async function setAppCommands(
 
     console.log("Successfully reloaded application (/) commands.");
   } catch (error) {
-    console.error(error);
+    console.error("Error : " + error);
   }
 }
