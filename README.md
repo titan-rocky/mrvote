@@ -13,13 +13,10 @@ reuse the code.
 
 ## Branches
 
----
-
 **stable** : The current stable 'n' active version. **PROTECTED**
+
 **master** : The experimental, latest version.
 
 ## Status
-
----
 
 _In Development_
