@@ -37,6 +37,13 @@ export default async function activateBot() {
           description: "Names of Candidates, seperated by space",
           required: true,
         },
+        {
+          name: "multiple",
+          type: 3,
+          description: "Whether a person can cast multiple votes",
+          required: false,
+          default: false,
+        },
       ],
     },
     {
