@@ -74,5 +74,14 @@ export default async function activateBot() {
   });
 
   await client.login(process.env.DISCORDTOKEN);
+  client.user!.setPresence({
+    activities: [
+      {
+        name: "League of Legends",
+      },
+    ],
+    status: "idle",
+  });
+
   return client;
 }
