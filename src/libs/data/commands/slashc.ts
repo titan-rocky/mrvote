@@ -1,14 +1,13 @@
 import {
-  APIMessageActionRowComponent,
   ActionRowBuilder,
-  BaseInteraction,
   ButtonBuilder,
-  ButtonComponent,
   ButtonStyle,
   CommandInteraction,
   ComponentType,
+  time,
 } from "discord.js";
 import { quoteArr } from "../suntzu";
+import { reshape } from "../../utills";
 
 export async function pong(interaction: CommandInteraction) {
   await interaction.reply({ content: "Pong!", ephemeral: true });
@@ -24,44 +23,70 @@ export async function sunquote(interaction: CommandInteraction) {
 
 export async function vote(interaction: CommandInteraction) {
   //const g = await interaction.deferReply();
+  //Time Duration in milliseconds
+  const deadLine = 60_000; //60 * 60 * 100;
 
-  const deadLine = 60 * 60 * 100;
+  //Vote Counter Table
+  const voteSpan: any = {};
+
+  //The elements to vote in the poll
   const cds = interaction.options
     .get("candidates")
     ?.value?.toString()
-    .split(" ")!;
-  const row = new ActionRowBuilder<any>();
+    .split(",")
+    .map((element) => {
+      const label = element.trimEnd().trimStart();
 
-  const voteSpan: any = {};
+      const button = new ButtonBuilder({
+        custom_id: `${interaction.id}_${label.toLowerCase()}`,
+        style: ButtonStyle.Primary,
+        label: `${label}`,
+      });
+      voteSpan[`${interaction.id}_${label.toLowerCase()}`] = {
+        votes: 0,
+        label: label,
+      };
+      return button;
+    })!;
 
-  cds.forEach((x: string) => {
-    const button = new ButtonBuilder({
-      custom_id: `${interaction.id}_${x}`,
-      style: ButtonStyle.Primary,
-      label: `${x}`,
-    });
-    row.addComponents(button);
-    voteSpan[`${interaction.id}_${x}`] = { votes: 0, label: x };
+  //Remainder (5 buttons per row)
+  const rowRem = 5;
+
+  //Reshapes the buttons into 5 per row
+  let candidates = reshape(cds, rowRem);
+
+  candidates.forEach((elm, index, arr) => {
+    const row = new ActionRowBuilder<ButtonBuilder>();
+    row.addComponents(elm);
+    arr[index] = row;
   });
 
   const response = await interaction.reply({
     content: `Question : \n### ${
       interaction.options.get("question")?.value
     }\n Below are the options`,
-    components: [row],
+    components: candidates,
   });
 
   const collector = response.createMessageComponentCollector({
     componentType: ComponentType.Button,
     time: deadLine,
   });
-
+  let votedPeople: { [key: string]: string } = {};
   collector.on("collect", async (res) => {
-    await res.reply({
-      content: `You have selected ${res.component.label}`,
-      ephemeral: true,
-    });
-    voteSpan[`${res.customId}`].votes += 1;
+    if (votedPeople[res.user.id]) {
+      await res.reply({
+        content: `You have already selected ${votedPeople[res.user.id]}`,
+        ephemeral: true,
+      });
+    } else {
+      votedPeople[res.user.id] = res.component.label!;
+      await res.reply({
+        content: `You have selected ${res.component.label}`,
+        ephemeral: true,
+      });
+      voteSpan[`${res.customId}`].votes += 1;
+    }
   });
   setTimeout(() => {
     let maxV: Array<any> = [{ votes: -1 }];
@@ -81,16 +106,17 @@ export async function vote(interaction: CommandInteraction) {
       (acc: string, cur) => acc + `***${cur.label}*** and `,
       ""
     );
-    mes1 = mes1.slice(0, -3);
+    mes1 = mes1.slice(0, -4);
     const questionString = interaction.options.get("question")?.value;
 
     interaction.editReply({
       content: `
-        Voting Results :\n### Question : \`\`\`${questionString!}\`\`\`\n${
+        Voting Results :\n### Question :\n## ${questionString!}\n### Result :\n${
         maxV.length > 1
-          ? `Tie : ${mes1}`
-          : `Majority : ***${maxV[0].label}***\n *\(${maxV[0].votes} votes\)*`
+          ? `Tie : ${mes1}\n *${maxV[0].votes} vote(s)*`
+          : `Majority : ***${maxV[0].label}***\n *${maxV[0].votes} vote(s)*`
       }
+        > Created at ${time(interaction.createdAt, "D")}
         `,
       components: [],
     });
